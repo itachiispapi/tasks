@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'local_store.dart';
-import 'task.dart';
+import 'task_list_screen.dart';
 
 void main() {
   runApp(const TaskApp());
@@ -50,38 +50,29 @@ class _TaskAppState extends State<TaskApp> {
       theme: ThemeData(useMaterial3: true, brightness: Brightness.light),
       darkTheme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
       themeMode: _mode,
-      home: PlaceholderHome(onChangeTheme: _setMode, mode: _mode),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class PlaceholderHome extends StatelessWidget {
-  final void Function(ThemeMode) onChangeTheme;
-  final ThemeMode mode;
-  const PlaceholderHome({super.key, required this.onChangeTheme, required this.mode});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('CW3'),
-        actions: [
-          PopupMenuButton<ThemeMode>(
-            onSelected: onChangeTheme,
-            itemBuilder: (c) => const [
-              PopupMenuItem(value: ThemeMode.system, child: Text('System')),
-              PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
-              PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+      home: Builder(
+        builder: (context) => Scaffold(
+          body: const TaskListScreen(),
+          appBar: AppBar(
+            title: const Text('CW3'),
+            actions: [
+              PopupMenuButton<ThemeMode>(
+                onSelected: _setMode,
+                itemBuilder: (c) => const [
+                  PopupMenuItem(value: ThemeMode.system, child: Text('System')),
+                  PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
+                  PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                ],
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Icon(Icons.color_lens),
+                ),
+              ),
             ],
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 12),
-              child: Icon(Icons.color_lens),
-            ),
           ),
-        ],
+        ),
       ),
-      body: Center(child: Text('Theme: ${mode.name}')),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
