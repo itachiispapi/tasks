@@ -5,7 +5,6 @@ import 'task.dart';
 
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
-
   @override
   State<TaskListScreen> createState() => _TaskListScreenState();
 }
@@ -24,10 +23,22 @@ class _TaskListScreenState extends State<TaskListScreen> {
 
   Future<void> _load() async {
     final loaded = await LocalStore.loadTasks();
-    setState(() => _tasks = loaded);
+    setState(() {
+      _tasks = _sorted(loaded);
+    });
   }
 
   Future<void> _save() async => LocalStore.saveTasks(_tasks);
+
+  List<Task> _sorted(List<Task> list) {
+    int rank(Priority p) => switch (p) { Priority.high => 0, Priority.medium => 1, Priority.low => 2 };
+    final sorted = [...list]..sort((a, b) {
+        final byPriority = rank(a.priority).compareTo(rank(b.priority));
+        if (byPriority != 0) return byPriority;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    return sorted;
+  }
 
   void _addTask() {
     final name = _ctrl.text.trim();
@@ -39,6 +50,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
         completed: false,
         priority: _newPriority,
       ));
+      _tasks = _sorted(_tasks);
       _ctrl.clear();
       _newPriority = Priority.medium;
     });
@@ -48,6 +60,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   void _toggleComplete(Task t, bool v) {
     setState(() {
       t.completed = v;
+      _tasks = _sorted(_tasks);
     });
     _save();
   }
@@ -57,6 +70,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
       _tasks.removeWhere((x) => x.id == t.id);
     });
     _save();
+  }
+
+  void _changePriority(Task t, Priority p) {
+    setState(() {
+      t.priority = p;
+      _tasks = _sorted(_tasks);
+    });
+    _save();
+  }
+
+  Widget _priorityChip(Priority p) {
+    final label = switch (p) { Priority.high => 'High', Priority.medium => 'Medium', Priority.low => 'Low' };
+    return Chip(label: Text(label));
   }
 
   @override
@@ -80,10 +106,17 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _addTask,
-                  child: const Text('Add'),
+                DropdownButton<Priority>(
+                  value: _newPriority,
+                  onChanged: (p) => setState(() => _newPriority = p ?? Priority.medium),
+                  items: const [
+                    DropdownMenuItem(value: Priority.high, child: Text('High')),
+                    DropdownMenuItem(value: Priority.medium, child: Text('Medium')),
+                    DropdownMenuItem(value: Priority.low, child: Text('Low')),
+                  ],
                 ),
+                const SizedBox(width: 8),
+                ElevatedButton(onPressed: _addTask, child: const Text('Add')),
               ],
             ),
           ),
@@ -106,9 +139,25 @@ class _TaskListScreenState extends State<TaskListScreen> {
                               ? const TextStyle(decoration: TextDecoration.lineThrough)
                               : null,
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline),
-                          onPressed: () => _deleteTask(t),
+                        subtitle: _priorityChip(t.priority),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PopupMenuButton<Priority>(
+                              tooltip: 'Change priority',
+                              onSelected: (p) => _changePriority(t, p),
+                              itemBuilder: (c) => const [
+                                PopupMenuItem(value: Priority.high, child: Text('High')),
+                                PopupMenuItem(value: Priority.medium, child: Text('Medium')),
+                                PopupMenuItem(value: Priority.low, child: Text('Low')),
+                              ],
+                              child: const Icon(Icons.flag),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              onPressed: () => _deleteTask(t),
+                            ),
+                          ],
                         ),
                       );
                     },
