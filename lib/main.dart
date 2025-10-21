@@ -18,11 +18,7 @@ class _TaskAppState extends State<TaskApp> {
   @override
   void initState() {
     super.initState();
-    LocalStore.loadThemeMode().then((m) {
-      setState(() {
-        _mode = _parseMode(m);
-      });
-    });
+    LocalStore.loadThemeMode().then((m) => setState(() => _mode = _parseMode(m)));
   }
 
   ThemeMode _parseMode(String m) {
@@ -50,27 +46,25 @@ class _TaskAppState extends State<TaskApp> {
       theme: ThemeData(useMaterial3: true, brightness: Brightness.light),
       darkTheme: ThemeData(useMaterial3: true, brightness: Brightness.dark),
       themeMode: _mode,
-      home: Builder(
-        builder: (context) => Scaffold(
-          body: const TaskListScreen(),
-          appBar: AppBar(
-            title: const Text('CW3'),
-            actions: [
-              PopupMenuButton<ThemeMode>(
-                onSelected: _setMode,
-                itemBuilder: (c) => const [
-                  PopupMenuItem(value: ThemeMode.system, child: Text('System')),
-                  PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
-                  PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
-                ],
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
-                  child: Icon(Icons.color_lens),
-                ),
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('CW3 Task Manager'),
+          actions: [
+            PopupMenuButton<ThemeMode>(
+              onSelected: _setMode,
+              itemBuilder: (c) => const [
+                PopupMenuItem(value: ThemeMode.system, child: Text('System')),
+                PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
+                PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+              ],
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Icon(Icons.color_lens),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+        body: const TaskListScreen(),
       ),
       debugShowCheckedModeBanner: false,
     );
